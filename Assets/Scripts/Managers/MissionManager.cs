@@ -98,28 +98,26 @@ public class MissionManager : MonoSingleton<MissionManager>
     {
         GameManager.instance.UiManager.ShowLoadingOverlay();
 
-        bool requestSuccess = await ServerManager.instance.ClaimMissionAsync(mission.Data.id, mission.Progress, missionIndex, (returnedData) => 
+        await ServerManager.instance.ClaimMissionAsync(mission.Data.id, mission.Progress, missionIndex, (returnedData) => 
         {
-            if ((ServerManager.PlayerActionStatus)returnedData.status == ServerManager.PlayerActionStatus.SUCCESS)
+            switch ((ServerManager.PlayerActionStatus)returnedData.status)
             {
-                PlayerSaveData playerSaveData = returnedData.data;
-                Missions[missionIndex] = new Mission(playerSaveData.missions[missionIndex]);
-                TotalMissionCompleted = playerSaveData.totalMissionCompleted;
-                onMissionClaimed?.Invoke(playerSaveData);
-                successCallback?.Invoke(playerSaveData);
-            }
-            else
-            {
-                RetryPopup popup = PopupManager.instance.OpenPopup(PopupManager.PopupType.RetryPopup) as RetryPopup;
-                popup.SetDesc("Failed to claim mission. Please try again later.");
+                case ServerManager.PlayerActionStatus.SUCCESS:
+                    PlayerSaveData playerSaveData = returnedData.data;
+                    Missions[missionIndex] = new Mission(playerSaveData.missions[missionIndex]);
+                    TotalMissionCompleted = playerSaveData.totalMissionCompleted;
+                    onMissionClaimed?.Invoke(playerSaveData);
+                    successCallback?.Invoke(playerSaveData);
+                    break;
+                default:
+                    RetryPopup popup = PopupManager.instance.OpenPopup(PopupManager.PopupType.RetryPopup) as RetryPopup;
+                    if (returnedData.status == (int)ServerManager.PlayerActionStatus.SERVER_ERROR)
+                        popup.SetDesc("Failed to claim mission due to server error. Please try again later.");
+                    else
+                        popup.SetDesc("Failed to claim mission. Please try again later.");
+                    break;
             }
         });
-
-        if (!requestSuccess)
-        {
-            RetryPopup popup = PopupManager.instance.OpenPopup(PopupManager.PopupType.RetryPopup) as RetryPopup;
-            popup.SetDesc("Failed to claim mission. Please try again later.");
-        }
 
         GameManager.instance.UiManager.HideLoadingOverlay();
     }

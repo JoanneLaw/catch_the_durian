@@ -74,12 +74,12 @@ public class ServerManager : MonoSingleton<ServerManager>
     #endregion
 
     #region Missions
-    public async Task<bool> ClaimMissionAsync(int missionId, int progress, int missionIndex, Action<ServerReturnedPlayerData> successCallback)
+    public async Task ClaimMissionAsync(int missionId, int progress, int missionIndex, Action<ServerReturnedPlayerData> onCallback)
     {
         if (string.IsNullOrEmpty(apiUrl))
         {
             Debug.Log("Api Url is not initialized.");
-            return false;
+            return;
         }
 
         string json = JsonConvert.SerializeObject(new ClaimMissionData
@@ -106,13 +106,16 @@ public class ServerManager : MonoSingleton<ServerManager>
             if (request.result == UnityWebRequest.Result.Success)
             {
                 ServerReturnedPlayerData returnedData = JsonConvert.DeserializeObject<ServerReturnedPlayerData>(request.downloadHandler.text);
-                successCallback?.Invoke(returnedData);
-                return true;
+                onCallback?.Invoke(returnedData);
             }
             else
             {
                 Debug.LogError("Claim mission failed: " + request.error);
-                return false;                
+                onCallback?.Invoke(new ServerReturnedPlayerData()
+                {
+                    status = (int)PlayerActionStatus.FAILED,
+                    data = null
+                });
             }
         }
     }
