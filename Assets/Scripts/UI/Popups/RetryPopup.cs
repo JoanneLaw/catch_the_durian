@@ -7,8 +7,8 @@ public class RetryPopup : Popup
     [SerializeField] private TextMeshProUGUI descText = null;
     [SerializeField] private CustomButton retryButton = null;
 
-    public Action onRetry;
-    public Action onPopupClosedCallback;
+    public event Action onRetry;
+    public event Action onPopupClosedCallback;
 
     public override void ClosePopup()
     {

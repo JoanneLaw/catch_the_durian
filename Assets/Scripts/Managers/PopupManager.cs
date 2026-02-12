@@ -19,6 +19,8 @@ public class PopupManager : MonoSingleton<PopupManager>
         MissionsPopup = 3,
         RetryPopup = 4,
         GameplayPopup = 5,
+        SettingsPopup = 6,
+        EditNamePopup = 7,
     }
 
     [SerializeField] private List<PopupSettings> popupSettings = new List<PopupSettings>();

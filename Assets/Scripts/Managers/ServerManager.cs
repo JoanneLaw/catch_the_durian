@@ -119,10 +119,54 @@ public class ServerManager : MonoSingleton<ServerManager>
     #endregion
 
     #region Player Game Data
+    public async Task UpdatePlayerName(string newName, Action<ServerReturnedPlayerData> onCallback)
+    {
+        if (string.IsNullOrEmpty(apiUrl))
+        {
+            Debug.Log("Api Url is not initialized.");
+            return;
+        }
+
+        string json = JsonConvert.SerializeObject(new PlayerSaveData()
+        {
+            playerId = PlayerManager.instance.PlayerId,
+            playerName = newName,
+        });
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+
+        using (UnityWebRequest request = new UnityWebRequest(apiUrl + "/updatePlayerName", "POST"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            var operation = request.SendWebRequest();
+
+            while (!operation.isDone)
+                await Task.Yield();     // non-blocking wait
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                ServerReturnedPlayerData returnedData = JsonConvert.DeserializeObject<ServerReturnedPlayerData>(request.downloadHandler.text);
+                onCallback?.Invoke(returnedData);
+            }
+            else
+            {
+                Debug.LogError("Update player name failed: " + request.error);
+                onCallback?.Invoke(new ServerReturnedPlayerData()
+                {
+                    status = (int)PlayerActionStatus.FAILED,
+                    data = null
+                });
+            }
+        }
+    }
+
     public void SaveGameData(bool syncServer = true)
     {
         PlayerSaveData data = new PlayerSaveData(
             PlayerManager.instance.PlayerId, 
+            PlayerManager.instance.PlayerName,
             PlayerManager.instance.HighScore, 
             PlayerManager.instance.Gem,
             MissionManager.instance.TotalMissionCompleted,
@@ -204,8 +248,10 @@ public class ServerManager : MonoSingleton<ServerManager>
     // Load Player Save Data
     private async Task<ServerReturnedPlayerData> LoadData(string playerId)
     {
-        PlayerSaveData playerSaveData = new PlayerSaveData();
-        playerSaveData.playerId = playerId;
+        PlayerSaveData playerSaveData = new PlayerSaveData()
+        {
+            playerId = playerId
+        };
         string json = JsonConvert.SerializeObject(playerSaveData);
         byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
 

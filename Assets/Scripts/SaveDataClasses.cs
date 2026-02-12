@@ -5,14 +5,16 @@ using UnityEngine;
 public class PlayerSaveData
 {
     public string playerId;
+    public string playerName;
     public int highScore;
     public int gem;
     public int totalMissionCompleted = 0;
     public MissionSaveData[] missions = new MissionSaveData[3];
     public PlayerSaveData() {}
-    public PlayerSaveData(string id, int hScore, int gemAmount, int missionCompleted = 0, MissionManager.Mission[] allMissions = null)
+    public PlayerSaveData(string id, string name, int hScore, int gemAmount, int missionCompleted = 0, MissionManager.Mission[] allMissions = null)
     {
         playerId = id;
+        playerName = name;
         highScore = hScore;
         gem = gemAmount;
         totalMissionCompleted = missionCompleted;
@@ -23,12 +25,14 @@ public class PlayerSaveData
             for (int i = 0; i < allMissions.Length; i++)
             {
                 MissionManager.Mission mission = allMissions[i];
-                MissionSaveData data = new MissionSaveData();
-                data.id = mission.Data.id;
-                data.progress = mission.Progress;
-                data.isCompleted = mission.IsCompleted;
-                data.isClaimed = mission.IsClaimed;
-                data.nextMissionTime = mission.NextMissionTime;
+                MissionSaveData data = new MissionSaveData()
+                {
+                    id = mission.Data.id,
+                    progress = mission.Progress,
+                    isCompleted = mission.IsCompleted,
+                    isClaimed = mission.IsClaimed,
+                    nextMissionTime = mission.NextMissionTime
+                };
                 missionSaveDatas[i] = data;
             }
 

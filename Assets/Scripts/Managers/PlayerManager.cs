@@ -40,6 +40,21 @@ public class PlayerManager : MonoSingleton<PlayerManager>
         }
     }
 
+    private string playerName = "";
+    public string PlayerName
+    {
+        get => playerName;
+        private set
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                playerName = "Farmer" + PlayerId.Substring(PlayerId.Length - 6, 6);
+                return;
+            }
+            
+            playerName = value;
+        }
+    }
     public string PlayerId { get; private set; } = "";
     public int HighScore { get; private set; } = 0;
     public int Gem { get; private set; } = 0;
@@ -145,8 +160,29 @@ public class PlayerManager : MonoSingleton<PlayerManager>
         PlayerId = data.playerId;
         HighScore = data.highScore;
         Gem = data.gem;
+        PlayerName = data.playerName;
 
-        GameManager.instance.UiManager.UpdatePlayerIdText();
         GameManager.instance.UiManager.UpdateHighScoreText();
+    }
+
+    public async void UpdatePlayerName(string newName, Action onSuccessCallback, Action onFailedCallback)
+    {
+        GameManager.instance.UiManager.ShowLoadingOverlay();
+
+        await ServerManager.instance.UpdatePlayerName(newName, (returnedData) =>
+        {
+            switch((ServerManager.PlayerActionStatus)returnedData.status)
+            {
+                case ServerManager.PlayerActionStatus.SUCCESS:
+                    PlayerName = returnedData.data.playerName;
+                    onSuccessCallback?.Invoke();
+                    break;
+                case ServerManager.PlayerActionStatus.FAILED:
+                    onFailedCallback?.Invoke();
+                    break;
+            }
+        });
+
+        GameManager.instance.UiManager.HideLoadingOverlay();
     }
 }

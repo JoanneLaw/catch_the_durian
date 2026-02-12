@@ -27,7 +27,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Image[] dropHpEffect = null;
     [SerializeField] private TextMeshProUGUI scoreText = null;
     [SerializeField] private TextMeshProUGUI highScoreText = null;
-    [SerializeField] private TextMeshProUGUI playerIdText = null;
     [SerializeField] private SpriteData spriteData = null;
     [SerializeField] private ProgressBar feverModeProgressBar = null;
     [SerializeField] private CustomButton pauseButton = null;
@@ -119,7 +118,7 @@ public class UIManager : MonoBehaviour
 
     private void onSettingsButtonClicked()
     {
-        PlayFloatingMessage("Settings UI not yet implemented.");
+        PopupManager.instance.OpenPopup(PopupManager.PopupType.SettingsPopup);
     }
 
     private void onShopButtonClicked()
@@ -133,7 +132,7 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
-    private void PlayFloatingMessage(string msg)
+    public void PlayFloatingMessage(string msg)
     {
         floatingMsgSeq.Stop();
 
@@ -208,11 +207,6 @@ public class UIManager : MonoBehaviour
     {
         highScoreText.SetText(PlayerManager.instance.HighScore.ToString("N0"));
     }
-    public void UpdatePlayerIdText()
-    {
-        playerIdText.SetText(PlayerManager.instance.PlayerId);
-    }
-
     private void UpdateScoreUI()
     {
         scoreText.SetText(PlayerManager.instance.Score.ToString());
